@@ -138,6 +138,14 @@ main {
 #spin-btn:hover { background: #ffc446; }
 #spin-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
 
+.quantity-selector { display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; }
+.qty-btn {
+    background: #232332; color: #fff; border: 1px solid #3a3a52;
+    padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.2s;
+}
+.qty-btn.active { background: #e5b042; color: #000; font-weight: bold; border-color: #e5b042; }
+.qty-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .inventory { margin-top: 40px; width: 100%; max-width: 800px; }
 .inventory-items { display: flex; flex-wrap: wrap; gap: 10px; background: #111118; padding: 20px; border-radius: 8px; min-height: 140px; }
 .inventory-items .skin-card { cursor: pointer; transition: 0.2s; height: 135px; }
@@ -210,7 +218,12 @@ main {
 }
 .win-modal.active .win-modal-content { transform: scale(1); }
 .win-title { color: #e5b042; font-size: 26px; margin-bottom: 20px; letter-spacing: 2px; animation: pulse 1.5s infinite; }
-.win-skin-container { display: flex; justify-content: center; margin-bottom: 25px; }
+.win-modal-content.wide { max-width: 580px; }
+.win-skin-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-bottom: 25px; }
+.win-skin-container.multi .skin-card { width: 130px; height: 115px; padding: 10px; }
+.win-skin-container.multi .skin-img { width: 90px; height: 55px; }
+.win-skin-container.multi .skin-name { font-size: 10px; }
+.win-skin-container.multi .skin-price { font-size: 12px; }
 .win-skin-container .skin-card { width: 180px; height: 160px; padding: 15px; background: #1c1c27; border-radius: 12px; animation: popIn 0.5s ease forwards; }
 .win-skin-container .skin-img { width: 140px; height: 80px; }
 .win-skin-container .skin-name { font-size: 13px; margin-top: 8px; }

@@ -78,6 +78,7 @@ const balanceVal = document.getElementById('balance-val');
 let balance = 1000;
 const cardWidth = 130; 
 let currentCase = 'free'; 
+let caseQuantity = 1;
 let playerInventory = [];
 let selectedSkinForUpgrade = null;
 let currentMultiplier = null;
@@ -108,7 +109,35 @@ function switchCase(caseType, title, btn) {
     btn.classList.add('active');
     document.getElementById('case-title').innerText = title;
     generateRouletteItems();
+    updateSpinButtonText();
 }
+
+function getCaseCost() {
+    if (currentCase === 'paid') return 50;
+    if (currentCase === 'knives') return 150;
+    if (currentCase === 'gloves') return 200;
+    return 0;
+}
+
+function updateSpinButtonText() {
+    if (!spinBtn) return;
+    const total = getCaseCost() * caseQuantity;
+    if (caseQuantity === 1) {
+        spinBtn.innerText = total > 0 ? `Открыть кейс (${total}$)` : 'Открыть кейс';
+    } else {
+        spinBtn.innerText = total > 0 ? `Открыть ${caseQuantity} кейса (${total}$)` : `Открыть ${caseQuantity} кейса`;
+    }
+}
+
+document.querySelectorAll('.qty-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        if (spinBtn.disabled) return;
+        document.querySelectorAll('.qty-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        caseQuantity = parseInt(this.getAttribute('data-qty'));
+        updateSpinButtonText();
+    });
+});
 
 function getRandomSkin() {
     let pool = freeCaseWeights;
@@ -142,12 +171,13 @@ function generateRouletteItems() {
 
 // Открытие кейсов
 spinBtn?.addEventListener('click', () => {
-    let cost = currentCase === 'paid' ? 50 : (currentCase === 'knives' ? 150 : (currentCase === 'gloves' ? 200 : 0));
+    const cost = getCaseCost() * caseQuantity;
     if (balance < cost) { alert("Недостаточно средств!"); return; }
     
     balance -= cost;
     balanceVal.innerText = balance;
     spinBtn.disabled = true;
+    document.querySelectorAll('.qty-btn').forEach(b => b.disabled = true);
 
     audioSpin.currentTime = 0;
     audioSpin.play();
@@ -170,9 +200,17 @@ spinBtn?.addEventListener('click', () => {
 
         const winnerCard = document.getElementById('winner-target');
         const winnerSkin = skins.find(s => winnerCard.innerHTML.includes(s.name));
-        addSkinToInventory(winnerSkin);
-        showWinModal(winnerSkin); 
+
+        // Первый скин — тот, что показала рулетка; остальные (при открытии нескольких кейсов) докручиваются мгновенно
+        const wonSkins = [winnerSkin];
+        for (let i = 1; i < caseQuantity; i++) {
+            wonSkins.push(getRandomSkin());
+        }
+        wonSkins.forEach(skin => addSkinToInventory(skin));
+        showWinModal(wonSkins);
+
         spinBtn.disabled = false;
+        document.querySelectorAll('.qty-btn').forEach(b => b.disabled = false);
     }, 4000);
 });
 
@@ -344,9 +382,20 @@ document.getElementById('upgrade-btn')?.addEventListener('click', function() {
     }, 3100);
 });
 
-function showWinModal(skin) {
+function showWinModal(skinsWon) {
     const modal = document.getElementById('win-modal');
-    document.getElementById('win-skin-container').innerHTML = `<div class="skin-card ${skin.rarity}">${createSkinCardHTML(skin)}</div>`;
+    const skinsArray = Array.isArray(skinsWon) ? skinsWon : [skinsWon];
+    const container = document.getElementById('win-skin-container');
+    const modalContent = document.querySelector('.win-modal-content');
+    const titleEl = document.querySelector('.win-title');
+
+    container.innerHTML = skinsArray.map(skin => `<div class="skin-card ${skin.rarity}">${createSkinCardHTML(skin)}</div>`).join('');
+
+    const isMulti = skinsArray.length > 1;
+    container.classList.toggle('multi', isMulti);
+    if (modalContent) modalContent.classList.toggle('wide', isMulti);
+    if (titleEl) titleEl.innerText = isMulti ? `ПОЗДРАВЛЯЕМ! (${skinsArray.length} шт.)` : "ПОЗДРАВЛЯЕМ!";
+
     modal.classList.add('active');
 }
 
@@ -365,3 +414,4 @@ document.getElementById('close-lose-btn')?.addEventListener('click', () => {
 });
 
 generateRouletteItems();
+updateSpinButtonText();
